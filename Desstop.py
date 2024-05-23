@@ -22,10 +22,14 @@ class Desstop:
         self.terminal_input = tk.Entry(self.command_window, width=50)
         self.terminal_input.pack(pady=10)
         self.terminal_input.bind("<Return>", self.process_command)
+        initial_x_offset = 300 
+        initial_y_offset = 100  
+        self.command_window.geometry(f"+{initial_x_offset}+{initial_y_offset}")
         
         self.terminal_output = scrolledtext.ScrolledText(self.command_window, width=60, height=15)
         self.terminal_output.pack(pady=10)
         
+        #If you want to add more faces, add them here. Seperate them by adding a comma at the end of the line
         self.ascii_faces = {
             "default": "(•‿•)",
             "happy": "(•◡•)",
@@ -47,6 +51,7 @@ class Desstop:
             "example": r"C:\example\example\example.exe",
         }
 
+        #If you want to add more commands, do so by adding them here first. Seperated by comma
         self.commands = {
             "open": self.open_program,
             "time": self.say_time,
@@ -161,6 +166,8 @@ class Desstop:
             self.terminal_output.insert(tk.END, f"Failed to open {program_name}: {str(e)}\n")
             self.update_dess("surprised")
 
+    #Add functionality for your command around here
+
     def say_time(self):
         now = datetime.now().strftime("%H:%M:%S")
         self.terminal_output.insert(tk.END, f"The current time is {now}\n")
@@ -261,6 +268,7 @@ class Desstop:
             self.terminal_output.insert(tk.END, f"I'd like to hear my name, not {recipient}\n")
             self.update_dess("irritated")
 
+    #Add your command to the list
     def show_commands(self):
         commands = """
         Commands:
