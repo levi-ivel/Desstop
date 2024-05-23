@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, simpledialog, messagebox
+from tkinter import scrolledtext, messagebox
 from threading import Thread
 import subprocess
 import time
@@ -38,7 +38,7 @@ class Desstop:
             "scream": "'\(·`囗´· ｡)՞'"
         }
         self.awake = True
-        self.terminal_output.insert(tk.END, "Hello, I'm Desstop! Please use commands list and settings to get started! \n You can call this window at any time by pressing CTRL + D \n whilst the program is running.")
+        self.terminal_output.insert(tk.END, "Hello, I'm Desstop! Please use commands list and settings to get started! \n You can call this window at any time by pressing CTRL + D \n whilst the program is running.\n")
 
         keyboard.add_hotkey('ctrl+d', self.move_windows_to_top)
         
@@ -258,8 +258,8 @@ class Desstop:
             self.terminal_output.insert(tk.END, "No problem!\n")
             self.update_dess("thanks")
         else:
-            self.terminal_output.insert(tk.END, f"Unknown recipient: {recipient}\n")
-            self.update_dess("surprised")
+            self.terminal_output.insert(tk.END, f"I'd like to hear my name, not {recipient}\n")
+            self.update_dess("irritated")
 
     def show_commands(self):
         commands = """
