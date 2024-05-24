@@ -67,7 +67,7 @@ class Desstop:
             "scream": "｡゜(｀Д´)゜｡"
         }
         self.awake = True
-        self.terminal_output.insert(tk.END, "Hello, I'm Desstop! Please use commands list and settings to get started! \n You can call this window at any time by pressing CTRL + D \n whilst the program is running.\n")
+        self.terminal_output.insert(tk.END, "Hello, I'm Desstop! \n Please use commands list and settings to get started! \n You can call this window at any time by pressing CTRL + D \n whilst the program is running.\n")
 
         keyboard.add_hotkey('ctrl+d', self.move_windows_to_top)
 
