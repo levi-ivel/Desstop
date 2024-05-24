@@ -18,7 +18,7 @@ executables = [
 
 setup(
     name="Desstop",
-    version="0.1",
+    version="0.2",
     description="An ASCII faced desktop assistant",
     options=options,
     executables=executables
