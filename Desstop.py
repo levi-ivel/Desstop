@@ -365,18 +365,18 @@ class RoutineManager:
         self.time_var = tk.StringVar()
 
         ttk.Label(self.routine_window, text="Routine Name:", background="#34495e", foreground="white").pack(pady=5) 
-        tk.Entry(self.routine_window, textvariable=self.routine_name_var).pack(pady=5)
+        tk.Entry(self.routine_window, background="#34495e", textvariable=self.routine_name_var).pack(pady=5)
 
         ttk.Label(self.routine_window, text="Command:", background="#34495e", foreground="white").pack(pady=5) 
-        tk.Entry(self.routine_window, textvariable=self.command_var).pack(pady=5)
+        tk.Entry(self.routine_window, background="#34495e", textvariable=self.command_var).pack(pady=5)
 
         ttk.Label(self.routine_window, text="Time (optional, format HH:MM:SS):", background="#34495e", foreground="white").pack(pady=5) 
-        tk.Entry(self.routine_window, textvariable=self.time_var).pack(pady=5)
+        tk.Entry(self.routine_window, background="#34495e", textvariable=self.time_var).pack(pady=5)
 
         tk.Button(self.routine_window, text="Add Command", command=self.add_command, bg="#2ecc71", fg="white").pack(pady=5)
         tk.Button(self.routine_window, text="Save Routine", command=self.save_routine, bg="#2ecc71", fg="white").pack(pady=5) 
 
-        self.command_listbox = tk.Listbox(self.routine_window)
+        self.command_listbox = tk.Listbox(self.routine_window, bg="#34495e", fg="white")
         self.command_listbox.pack(pady=5, fill=tk.BOTH, expand=True)
 
         tk.Button(self.routine_window, text="Remove Selected Command", command=self.remove_command, bg="#e74c3c", fg="white").pack(pady=5) 
