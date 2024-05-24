@@ -156,7 +156,7 @@ class Desstop:
         program_settings_window.title("Set Program Paths")
         program_settings_window.configure(bg="#34495e") 
 
-        program_label = tk.Label(program_settings_window, text="Program Paths:", font=("Arial", 14))
+        program_label = tk.Label(program_settings_window, text="Program Paths:", font=("Arial", 14), bg="#34495e", fg="white")
         program_label.pack(pady=10)
 
         self.program_paths_text = scrolledtext.ScrolledText(program_settings_window, width=60, height=15, font=("Helvetica", 10), bg="#2c3e50", fg="white") 
