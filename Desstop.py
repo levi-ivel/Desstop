@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, messagebox
+from tkinter import scrolledtext
 from threading import Thread
 import subprocess
 import time
@@ -9,18 +9,17 @@ import keyboard
 import pyautogui
 import json
 
-# Function to save settings to a JSON file
+
 def save_settings(settings):
     with open("settings.json", "w") as f:
         json.dump(settings, f)
 
-# Function to load settings from a JSON file
+
 def load_settings():
     try:
         with open("settings.json", "r") as f:
             return json.load(f)
     except FileNotFoundError:
-        # Return default settings if file doesn't exist
         return {
             "wheel_outcomes": ["Outcome 1", "Outcome 2", "Outcome 3"],
             "program_paths": {
@@ -53,7 +52,7 @@ class Desstop:
         self.terminal_output = scrolledtext.ScrolledText(self.command_window, width=60, height=15)
         self.terminal_output.pack(pady=10)
 
-        # ASCII faces for different states
+        #If you want to add more faces, add them here. Seperate them by adding a comma at the end of the line
         self.ascii_faces = {
             "default": "(•‿•)",
             "happy": "(•◡•)",
@@ -70,7 +69,7 @@ class Desstop:
 
         keyboard.add_hotkey('ctrl+d', self.move_windows_to_top)
 
-        # Command dictionary
+        #If you want to add more commands, do so by adding them here first. Seperated by comma
         self.commands = {
             "open": self.open_program,
             "time": self.say_time,
@@ -191,6 +190,8 @@ class Desstop:
             self.terminal_output.insert(tk.END, f"Failed to open {program_name}: {str(e)}\n")
             self.update_dess("surprised")
 
+    #Add functionality for your command around here
+
     def say_time(self):
         now = datetime.now().strftime("%H:%M:%S")
         self.terminal_output.insert(tk.END, f"The current time is {now}\n")
@@ -216,6 +217,7 @@ class Desstop:
 
     def blink(self):
         self.update_dess("blink")
+        self.root.after(200, lambda: self.update_dess("default"))
         self.terminal_output.insert(tk.END, "Blink!\n")
 
     def sleep(self):
@@ -224,36 +226,79 @@ class Desstop:
         self.terminal_output.insert(tk.END, "Going to sleep...\n")
 
     def awake_(self):
-        self.awake = True
-        self.update_dess("default")
-        self.terminal_output.insert(tk.END, "I'm awake!\n")
-
-    def thanks(self):
-        self.update_dess("thanks")
-        self.terminal_output.insert(tk.END, "Thank you!\n")
-
-    def show_commands(self):
-        self.terminal_output.insert(tk.END, "Available commands: open, time, settings, spin, blink, sleep, awake, thanks, list, countdown\n")
-        self.update_dess("default")
-
-    def start_countdown(self, seconds):
-        try:
-            seconds = int(seconds)
-            self.terminal_output.insert(tk.END, f"Starting countdown for {seconds} seconds...\n")
-            self.update_dess("working")
-            countdown_thread = Thread(target=self.countdown, args=(seconds,))
-            countdown_thread.start()
-        except ValueError:
-            self.terminal_output.insert(tk.END, "Please provide a valid number of seconds for the countdown.\n")
+        if self.awake:
+            self.terminal_output.insert(tk.END, "I'm already awake.\n")
             self.update_dess("irritated")
+        else:
+            self.awake = True
+            self.update_dess("default")
+            self.terminal_output.insert(tk.END, "Zzz.... huh? Oh sorry, it appears I went to sleep.\n")
 
-    def countdown(self, seconds):
-        for i in range(seconds, 0, -1):
-            self.terminal_output.insert(tk.END, f"{i}...\n")
-            self.terminal_output.yview(tk.END)
+    def thanks(self, recipient):
+        if recipient.lower() in ["desstop", "dess", "dt"]:
+            self.terminal_output.insert(tk.END, "No problem!\n")
+            self.update_dess("thanks")
+        else:
+            self.terminal_output.insert(tk.END, f"I'd like to hear my name, not {recipient}\n")
+            self.update_dess("irritated")
+            
+    #Finally, add your command to this list
+    def show_commands(self):
+        self.terminal_output.insert(tk.END, "Available commands: open {program},\n time,\n settings,\n spin {wheelname},\n blink,\n sleep,\n awake,\n thanks {desstop, dess, dt},\n list,\n countdown {0s, 0m, 0h}\n")
+        self.update_dess("default")
+
+    def start_countdown(self, duration_str):
+        try:
+            duration = self.parse_duration(duration_str)
+            if duration:
+                self.countdown_window = tk.Toplevel(self.root)
+                self.countdown_window.title("Countdown")
+                self.countdown_label = tk.Label(self.countdown_window, text="", font=("Arial", 24))
+                self.countdown_label.pack(pady=20)
+                Thread(target=self.run_countdown, args=(duration,)).start()
+            else:
+                self.terminal_output.insert(tk.END, "Invalid duration format. Please use format like '10s', '5m', or '1h'\n")
+                self.update_dess("surprised")
+        except Exception as e:
+            self.terminal_output.insert(tk.END, f"Error starting countdown: {str(e)}\n")
+            self.update_dess("surprised")
+
+    def parse_duration(self, duration_str):
+        duration_str = duration_str.lower()
+        total_seconds = 0
+        parts = duration_str.split()
+        for part in parts:
+            value = int(part[:-1])
+            unit = part[-1]
+            if unit == 's':
+                total_seconds += value
+            elif unit == 'm':
+                total_seconds += value * 60
+            elif unit == 'h':
+                total_seconds += value * 3600
+            else:
+                return None
+        return total_seconds
+
+    def run_countdown(self, duration):
+        remaining_time = duration
+        while remaining_time > 0:
+            hours = remaining_time // 3600
+            minutes = (remaining_time % 3600) // 60
+            seconds = remaining_time % 60
+            time_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+            self.countdown_label.config(text=time_str)
+            self.countdown_window.update()
             time.sleep(1)
-        self.terminal_output.insert(tk.END, "Time's up!\n")
-        self.update_dess("happy")
+            remaining_time -= 1
+        self.root.attributes('-topmost', True)
+        self.command_window.after(100, lambda: self.command_window.attributes('-topmost', False))
+        self.command_window.attributes('-topmost', True)
+        self.root.after(100, lambda: self.root.attributes('-topmost', False))
+        self.countdown_window.destroy()
+        self.terminal_output.insert(tk.END, "Countdown finished!\n")
+        self.update_dess("scream")
+        self.root.after(4000, lambda: self.update_dess("working"))
 
     def update_dess(self, state):
         self.dess_label.config(text=self.ascii_faces.get(state, "(•‿•)"))
