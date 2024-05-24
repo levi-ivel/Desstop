@@ -1,11 +1,13 @@
-![DesstopPreviewImage](https://github.com/levi-ivel/Desstop/assets/142150222/d854aa93-a311-4a02-990a-ad02078e4bdf)
+
+![Screenshot 2024-05-24 151642](https://github.com/levi-ivel/Desstop/assets/142150222/275bba0a-8514-421a-8557-6ca77fb43f3a)
 
 
 Desstop is an ASCII faced desktop assistant that can preform numerous commands from a terminal
 
-![Dess](https://github.com/levi-ivel/Desstop/assets/142150222/9a566154-4a12-47ed-8635-ee5a80d9e260)
+![DessRoutine](https://github.com/levi-ivel/Desstop/assets/142150222/3a702837-acd6-4bcf-9d3b-bf1798b4eaac)
 
-If you want to see what Dess can do, get the release [here](https://github.com/levi-ivel/Desstop/releases/tag/V0.1)
+
+If you want to see what Dess can do, get the release [here](https://github.com/levi-ivel/Desstop/releases)
 
 
 This project is open source, so feel free to add or remove whatever you want. You can also make a pull request so your changes can be added to Desstop itself, documentation on how to create a pull request can be found [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)
