@@ -1,4 +1,7 @@
-Desstop is an ASCII faced desktop assistant that cann preform numerous commands from a terminal
+![DesstopPreviewImage](https://github.com/levi-ivel/Desstop/assets/142150222/d854aa93-a311-4a02-990a-ad02078e4bdf)
+
+
+Desstop is an ASCII faced desktop assistant that can preform numerous commands from a terminal
 
 ![Dess](https://github.com/levi-ivel/Desstop/assets/142150222/9a566154-4a12-47ed-8635-ee5a80d9e260)
 
