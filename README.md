@@ -25,7 +25,7 @@ routine {routinename} edit: change name, commands or time from an existing routi
 
 Download
 ---
-If you want to see what Dess can do, get them [here](https://github.com/levi-ivel/Desstop/releases)
+If you want to see what Dess can do, get the program [here](https://github.com/levi-ivel/Desstop/releases)
 
 Contributing
 ---
