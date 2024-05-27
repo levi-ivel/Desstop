@@ -4,18 +4,21 @@ import tkinter as tk
 from datetime import datetime
 import json
 
+#START --json--
 # json setup for saving settings prefereences
 def save_settings(settings):
     with open("settings.json", "w") as f:
         json.dump(settings, f)
+#END --json--
 
 class RoutineManager:
+#START --general setup--
     def __init__(self, root, desstop):
         self.root = root
         self.desstop = desstop
         self.routines = self.desstop.settings.get("routines", {})
     
-    # opens routine setup window
+    # setup and initialize routine window
     def open_routine_window(self, routine_name=None):
         self.routine_window = tk.Toplevel(self.root)
         self.routine_window.title("Routine Manager")
@@ -47,8 +50,8 @@ class RoutineManager:
             self.time_var.set(routine.get("time", ""))
             for command in routine.get("commands", []):
                 self.command_listbox.insert(tk.END, command)
-
-    # setup options
+#END --general setup--
+#START --routine options--
     def add_command(self):
         command = self.command_var.get().strip()
         if command:
@@ -82,7 +85,8 @@ class RoutineManager:
         save_settings(self.desstop.settings)
         messagebox.showinfo("Success", f"Routine '{name}' saved successfully")
         self.routine_window.destroy()
-
+#END --routine options--
+#START --activating routine--
     # manually activate routine
     def execute_routine(self, name):
         routine = self.routines.get(name)
@@ -101,3 +105,4 @@ class RoutineManager:
             routine_time = routine.get("time")
             if routine_time and routine_time == now:
                 self.execute_routine(name)
+#END --activating routine--

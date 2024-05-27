@@ -10,6 +10,8 @@ import pyautogui
 import json
 from RoutineManager import RoutineManager
 
+
+#START --json--
 # json setup for saving/loading setting preferences
 def save_settings(settings):
     with open("settings.json", "w") as f:
@@ -27,9 +29,10 @@ def load_settings():
             },
             "routines": {}
         }
+#END --json--
 
 class Desstop:
-
+#START --general setup--
     # setup and initialize face and terminal window
     def __init__(self, root):
         self.root = root
@@ -92,7 +95,8 @@ class Desstop:
         keyboard.add_hotkey('ctrl+d', self.move_windows_to_top)
 
         self.check_routines()
-
+#END --general setup--
+#START --misc. setup--
     # process and execute command
     def process_command(self, event):
         command = self.terminal_input_cmd.get()
@@ -139,8 +143,9 @@ class Desstop:
 
         self.dess_label.lift()
         self.command_window.lift()
-
-    # open the wheel and program setting windows 
+#END --misc. setup--
+#START --settings--
+    # open the wheel and program setting windows
     def show_settings(self):
         self.terminal_output.insert(tk.END, "Opening settings windows...\n")
         self.update_dess("working")
@@ -198,8 +203,9 @@ class Desstop:
         save_settings(self.settings)
         self.terminal_output.insert(tk.END, "Program paths saved successfully!\n")
         self.update_dess("happy")
-
-    # commands
+#END --settings--
+#START --commands--
+#START --main commands--
     def open_program(self, program_name):
         try:
             program_path = self.program_paths.get(program_name.lower())
@@ -214,11 +220,15 @@ class Desstop:
             self.terminal_output.insert(tk.END, f"Failed to open {program_name}: {str(e)}\n")
             self.update_dess("surprised")
 
+    def show_commands(self):
+        self.terminal_output.insert(tk.END, "Available commands: open {program},\n time,\n settings,\n spin {wheelname},\n blink,\n sleep,\n awake,\n thanks {desstop, dess, dt},\n list,\n countdown {0s, 0m, 0h},\n routine,\n routine {routinename)\n, routine {routinename} edit\n ")
+        self.update_dess("default")
+
     def say_time(self):
         now = datetime.now().strftime("%H:%M:%S")
         self.terminal_output.insert(tk.END, f"The current time is {now}\n")
         self.update_dess("happy")
-
+#START --wheel--
     def spin_wheel(self, wheelname):
         wheel_window = tk.Toplevel(self.root)
         wheel_window.title(f"Spinning {wheelname} Wheel")
@@ -237,38 +247,8 @@ class Desstop:
 
         spin_thread = Thread(target=animate_spin)
         spin_thread.start()
-
-    def blink(self):
-        self.update_dess("blink")
-        self.root.after(200, lambda: self.update_dess("default"))
-        self.terminal_output.insert(tk.END, "Blink!\n")
-
-    def sleep(self):
-        self.awake = False
-        self.update_dess("sleep")
-        self.terminal_output.insert(tk.END, "Going to sleep...\n")
-
-    def awake_(self):
-        if self.awake:
-            self.terminal_output.insert(tk.END, "I'm already awake.\n")
-            self.update_dess("irritated")
-        else:
-            self.awake = True
-            self.update_dess("default")
-            self.terminal_output.insert(tk.END, "Zzz.... huh? Oh sorry, it appears I went to sleep.\n")
-
-    def thanks(self, recipient):
-        if recipient.lower() in ["desstop", "dess", "dt"]:
-            self.terminal_output.insert(tk.END, "No problem!\n")
-            self.update_dess("thanks")
-        else:
-            self.terminal_output.insert(tk.END, f"I'd like to hear my name, not {recipient}\n")
-            self.update_dess("irritated")
-
-    def show_commands(self):
-        self.terminal_output.insert(tk.END, "Available commands: open {program},\n time,\n settings,\n spin {wheelname},\n blink,\n sleep,\n awake,\n thanks {desstop, dess, dt},\n list,\n countdown {0s, 0m, 0h},\n routine,\n routine {routinename)\n, routine {routinename} edit\n ")
-        self.update_dess("default")
-
+#END --wheel--
+#START --countdown--
     def start_countdown(self, duration_str):
         try:
             duration = self.parse_duration(duration_str)
@@ -322,7 +302,8 @@ class Desstop:
         self.terminal_output.insert(tk.END, "Countdown finished!\n")
         self.update_dess("scream")
         self.root.after(4000, lambda: self.update_dess("working"))
-
+#END --countdown--
+#START --routines--
     def manage_routine(self, *args):
         if len(args) == 1:
             routine_name = args[0]
@@ -337,27 +318,40 @@ class Desstop:
         now = datetime.now().strftime("%H:%M:%S")
         self.routine_manager.schedule_routines()
         self.root.after(1000, self.check_routines)
+#END --routines--
+#END --main commands--
+#START --for fun commands--
+    def blink(self):
+        self.update_dess("blink")
+        self.root.after(200, lambda: self.update_dess("default"))
+        self.terminal_output.insert(tk.END, "Blink!\n")
 
-    def process_custom_command(self, command):
-        parts = command.split()
-        main_command = parts[0].lower()
+    def sleep(self):
+        self.awake = False
+        self.update_dess("sleep")
+        self.terminal_output.insert(tk.END, "Going to sleep...\n")
 
-        if main_command in self.commands:
-            self.commands[main_command](*parts[1:])
-        elif main_command == "routine":
-            if len(parts) == 3 and parts[2].lower() == "edit":
-                routine_name = parts[1]
-                self.routine_manager.open_routine_window(routine_name)
-            else:
-                routine_name = " ".join(parts[1:])
-                self.routine_manager.execute_routine(routine_name)
+    def awake_(self):
+        if self.awake:
+            self.terminal_output.insert(tk.END, "I'm already awake.\n")
+            self.update_dess("irritated")
         else:
-            self.terminal_output.insert(tk.END, f"Unknown command: {command}\n")
-            self.update_dess("surprised")
+            self.awake = True
+            self.update_dess("default")
+            self.terminal_output.insert(tk.END, "Zzz.... huh? Oh sorry, it appears I went to sleep.\n")
+
+    def thanks(self, recipient):
+        if recipient.lower() in ["desstop", "dess", "dt"]:
+            self.terminal_output.insert(tk.END, "No problem!\n")
+            self.update_dess("thanks")
+        else:
+            self.terminal_output.insert(tk.END, f"I'd like to hear my name, not {recipient}\n")
+            self.update_dess("irritated")
+#END --for fun commands--
+#END --commands--
 
     def update_dess(self, state):
         self.dess_label.config(text=self.ascii_faces.get(state, "(•‿•)"), bg="#34495e")
-
 
 if __name__ == "__main__":
     root = tk.Tk()
