@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, messagebox
+from tkinter import scrolledtext
 from threading import Thread
 import subprocess
 import time
@@ -8,8 +8,9 @@ import random
 import keyboard
 import pyautogui
 import json
-from tkinter import ttk
+from RoutineManager import RoutineManager
 
+# json setup for saving/loading setting preferences
 def save_settings(settings):
     with open("settings.json", "w") as f:
         json.dump(settings, f)
@@ -28,6 +29,8 @@ def load_settings():
         }
 
 class Desstop:
+
+    # setup and initialize face and terminal window
     def __init__(self, root):
         self.root = root
         self.root.title("Desstop")
@@ -55,6 +58,7 @@ class Desstop:
         self.terminal_output = scrolledtext.ScrolledText(self.command_window, width=60, height=15, font=("Helvetica", 10), bg="#2c3e50", fg="white") 
         self.terminal_output.pack(pady=10)
 
+        # list available faces
         self.ascii_faces = {
             "default": "(•‿•)",
             "happy": "(•◡•)",
@@ -66,11 +70,8 @@ class Desstop:
             "working": "(ง •̀_•́)ง",
             "scream": "｡゜(｀Д´)゜｡"
         }
-        self.awake = True
-        self.terminal_output.insert(tk.END, "Hello, I'm Desstop! \n Please use commands list and settings to get started! \n You can call this window at any time by pressing CTRL + D \n whilst the program is running.\n")
 
-        keyboard.add_hotkey('ctrl+d', self.move_windows_to_top)
-
+        # list available commands
         self.commands = {
             "open": self.open_program,
             "time": self.say_time,
@@ -85,8 +86,14 @@ class Desstop:
             "routine": self.manage_routine
         }
 
+        self.awake = True
+        self.terminal_output.insert(tk.END, "Hello, I'm Desstop! \n Please use commands list and settings to get started! \n You can call this window at any time by pressing CTRL + D \n whilst the program is running.\n")
+
+        keyboard.add_hotkey('ctrl+d', self.move_windows_to_top)
+
         self.check_routines()
 
+    # process and execute command
     def process_command(self, event):
         command = self.terminal_input_cmd.get()
         self.terminal_input_cmd.delete(0, tk.END)
@@ -112,6 +119,7 @@ class Desstop:
             self.terminal_output.insert(tk.END, f"Unknown command: {command}\n")
             self.update_dess("surprised")
 
+    # move windows to front upon keybind press
     def move_windows_to_top(self):
         mouse_x, mouse_y = pyautogui.position()
         offset_x = -150
@@ -132,11 +140,10 @@ class Desstop:
         self.dess_label.lift()
         self.command_window.lift()
 
+    # open the wheel and program setting windows 
     def show_settings(self):
         self.terminal_output.insert(tk.END, "Opening settings windows...\n")
         self.update_dess("working")
-
-    
 
         wheel_settings_window = tk.Toplevel(self.root)
         wheel_settings_window.title("Set Wheel Outcomes")
@@ -165,7 +172,8 @@ class Desstop:
 
         save_program_paths_button = tk.Button(program_settings_window, text="Save", command=self.save_program_paths, bg="#2ecc71", fg="white") 
         save_program_paths_button.pack(pady=10)
-
+    
+    # save settings to json
     def save_wheel_outcomes(self):
         outcomes_text = self.wheel_outcomes_entry.get("1.0", tk.END).strip()
         self.wheel_outcomes = outcomes_text.split("\n")
@@ -191,6 +199,7 @@ class Desstop:
         self.terminal_output.insert(tk.END, "Program paths saved successfully!\n")
         self.update_dess("happy")
 
+    # commands
     def open_program(self, program_name):
         try:
             program_path = self.program_paths.get(program_name.lower())
@@ -349,94 +358,6 @@ class Desstop:
     def update_dess(self, state):
         self.dess_label.config(text=self.ascii_faces.get(state, "(•‿•)"), bg="#34495e")
 
-class RoutineManager:
-    def __init__(self, root, desstop):
-        self.root = root
-        self.desstop = desstop
-        self.routines = self.desstop.settings.get("routines", {})
-
-    def open_routine_window(self, routine_name=None):
-        self.routine_window = tk.Toplevel(self.root)
-        self.routine_window.title("Routine Manager")
-        self.routine_window.configure(bg="#34495e") 
-
-        self.routine_name_var = tk.StringVar(value=routine_name)
-        self.command_var = tk.StringVar()
-        self.time_var = tk.StringVar()
-
-        ttk.Label(self.routine_window, text="Routine Name:", background="#34495e", foreground="white").pack(pady=5) 
-        tk.Entry(self.routine_window, background="#34495e", textvariable=self.routine_name_var).pack(pady=5)
-
-        ttk.Label(self.routine_window, text="Command:", background="#34495e", foreground="white").pack(pady=5) 
-        tk.Entry(self.routine_window, background="#34495e", textvariable=self.command_var).pack(pady=5)
-
-        ttk.Label(self.routine_window, text="Time (optional, format HH:MM:SS):", background="#34495e", foreground="white").pack(pady=5) 
-        tk.Entry(self.routine_window, background="#34495e", textvariable=self.time_var).pack(pady=5)
-
-        tk.Button(self.routine_window, text="Add Command", command=self.add_command, bg="#2ecc71", fg="white").pack(pady=5)
-        tk.Button(self.routine_window, text="Save Routine", command=self.save_routine, bg="#2ecc71", fg="white").pack(pady=5) 
-
-        self.command_listbox = tk.Listbox(self.routine_window, bg="#34495e", fg="white")
-        self.command_listbox.pack(pady=5, fill=tk.BOTH, expand=True)
-
-        tk.Button(self.routine_window, text="Remove Selected Command", command=self.remove_command, bg="#e74c3c", fg="white").pack(pady=5) 
-
-        if routine_name and routine_name in self.routines:
-            routine = self.routines[routine_name]
-            self.time_var.set(routine.get("time", ""))
-            for command in routine.get("commands", []):
-                self.command_listbox.insert(tk.END, command)
-
-    def add_command(self):
-        command = self.command_var.get().strip()
-        if command:
-            self.command_listbox.insert(tk.END, command)
-            self.command_var.set("")
-        else:
-            messagebox.showerror("Error", "Command cannot be empty")
-
-    def remove_command(self):
-        selected = self.command_listbox.curselection()
-        if selected:
-            self.command_listbox.delete(selected)
-
-    def save_routine(self):
-        name = self.routine_name_var.get().strip()
-        if not name:
-            messagebox.showerror("Error", "Routine name cannot be empty")
-            return
-
-        commands = self.command_listbox.get(0, tk.END)
-        if not commands:
-            messagebox.showerror("Error", "Routine must have at least one command")
-            return
-
-        routine = {
-            "commands": list(commands),
-            "time": self.time_var.get().strip() or None
-        }
-        self.routines[name] = routine
-        self.desstop.settings["routines"] = self.routines
-        save_settings(self.desstop.settings)
-        messagebox.showinfo("Success", f"Routine '{name}' saved successfully")
-        self.routine_window.destroy()
-
-    def execute_routine(self, name):
-        routine = self.routines.get(name)
-        if routine:
-            commands = routine["commands"]
-            for command in commands:
-                self.desstop.process_custom_command(command)
-        else:
-            self.desstop.terminal_output.insert(tk.END, f"Routine '{name}' not found\n")
-            self.desstop.update_dess("surprised")
-
-    def schedule_routines(self):
-        now = datetime.now().strftime("%H:%M:%S")
-        for name, routine in self.routines.items():
-            routine_time = routine.get("time")
-            if routine_time and routine_time == now:
-                self.execute_routine(name)
 
 if __name__ == "__main__":
     root = tk.Tk()
