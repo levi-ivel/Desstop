@@ -13,7 +13,7 @@ options = {
 }
 
 executables = [
-    Executable("Desstop.py", "RoutineManager", base=base)
+    Executable("Desstop.py", base=base)
 ]
 
 setup(

@@ -1,18 +1,15 @@
-import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, messagebox, ttk
 from threading import Thread
+from datetime import datetime
+import tkinter as tk
 import subprocess
 import time
-from datetime import datetime
-import random
 import keyboard
 import pyautogui
 import json
-from RoutineManager import RoutineManager
-
+import random
 
 #START --json--
-# json setup for saving/loading setting preferences
 def save_settings(settings):
     with open("settings.json", "w") as f:
         json.dump(settings, f)
@@ -31,18 +28,17 @@ def load_settings():
         }
 #END --json--
 
+#START --setup--
 class Desstop:
-#START --general setup--
-    # setup and initialize face and terminal window
     def __init__(self, root):
         self.root = root
         self.root.title("Desstop")
         self.root.configure(bg="#34495e")
 
         self.settings = load_settings()
+        self.routines = self.settings.get("routines", {})
         self.wheel_outcomes = self.settings.get("wheel_outcomes", ["Outcome 1", "Outcome 2", "Outcome 3"])
         self.program_paths = self.settings.get("program_paths", {"example": r"C:\example\example\example.exe"})
-        self.routine_manager = RoutineManager(self.root, self)
 
         self.dess_label = tk.Label(root, text="(•‿•)", font=("Helvetica", 24), fg="#2ecc71", bg="#34495e")
         self.dess_label.pack(pady=20)
@@ -61,7 +57,6 @@ class Desstop:
         self.terminal_output = scrolledtext.ScrolledText(self.command_window, width=60, height=15, font=("Helvetica", 10), bg="#2c3e50", fg="white") 
         self.terminal_output.pack(pady=10)
 
-        # list available faces
         self.ascii_faces = {
             "default": "(•‿•)",
             "happy": "(•◡•)",
@@ -74,7 +69,6 @@ class Desstop:
             "scream": "｡゜(｀Д´)゜｡"
         }
 
-        # list available commands
         self.commands = {
             "open": self.open_program,
             "time": self.say_time,
@@ -95,8 +89,9 @@ class Desstop:
         keyboard.add_hotkey('ctrl+d', self.move_windows_to_top)
 
         self.check_routines()
-#END --general setup--
-#START --misc. setup--
+#END --setup--
+
+#START --utility--
     # process and execute command
     def process_command(self, event):
         command = self.terminal_input_cmd.get()
@@ -143,7 +138,8 @@ class Desstop:
 
         self.dess_label.lift()
         self.command_window.lift()
-#END --misc. setup--
+#END --utility--
+
 #START --settings--
     # open the wheel and program setting windows
     def show_settings(self):
@@ -204,7 +200,9 @@ class Desstop:
         self.terminal_output.insert(tk.END, "Program paths saved successfully!\n")
         self.update_dess("happy")
 #END --settings--
+
 #START --commands--
+
 #START --main commands--
     def open_program(self, program_name):
         try:
@@ -228,40 +226,32 @@ class Desstop:
         now = datetime.now().strftime("%H:%M:%S")
         self.terminal_output.insert(tk.END, f"The current time is {now}\n")
         self.update_dess("happy")
-#START --wheel--
-    def spin_wheel(self, wheelname):
-        wheel_window = tk.Toplevel(self.root)
-        wheel_window.title(f"Spinning {wheelname} Wheel")
-        wheel_window.configure(bg="#34495e") 
-        wheel_label = tk.Label(wheel_window, text="", font=("Helvetica", 24), bg="#34495e", fg="white")
-        wheel_label.pack(pady=20)
 
-        def animate_spin():
-            for _ in range(30):
-                result = random.choice(self.wheel_outcomes)
-                wheel_label.config(text=result)
-                wheel_window.update()
-                time.sleep(0.05)
-            self.terminal_output.insert(tk.END, f"The wheel landed on: {result}\n")
-            self.update_dess("happy")
-
-        spin_thread = Thread(target=animate_spin)
-        spin_thread.start()
-#END --wheel--
 #START --countdown--
-    def start_countdown(self, duration_str):
+    def start_countdown(self, *duration_args):
         try:
-            duration = self.parse_duration(duration_str)
-            if duration:
-                self.countdown_window = tk.Toplevel(self.root)
-                self.countdown_window.title("Countdown")
-                self.countdown_window.configure(bg="#34495e") 
-                self.countdown_label = tk.Label(self.countdown_window, text="", font=("Helvetica", 24), bg="#34495e", fg="white") 
-                self.countdown_label.pack(pady=20)
-                Thread(target=self.run_countdown, args=(duration,)).start()
-            else:
-                self.terminal_output.insert(tk.END, "Invalid duration format. Please use format like '10s', '5m', or '1h'\n")
-                self.update_dess("surprised")
+            total_seconds = 0
+            for duration_arg in duration_args:
+                duration_str = duration_arg.lower()
+                value = int(duration_str[:-1])
+                unit = duration_str[-1]
+                if unit == 's':
+                    total_seconds += value
+                elif unit == 'm':
+                    total_seconds += value * 60
+                elif unit == 'h':
+                    total_seconds += value * 3600
+                else:
+                    raise ValueError(f"Invalid duration format: {duration_arg}")
+            if total_seconds <= 0:
+                raise ValueError("Duration must be greater than zero")
+
+            self.countdown_window = tk.Toplevel(self.root)
+            self.countdown_window.title("Countdown")
+            self.countdown_window.configure(bg="#34495e")
+            self.countdown_label = tk.Label(self.countdown_window, text="", font=("Helvetica", 24), bg="#34495e", fg="white")
+            self.countdown_label.pack(pady=20)
+            Thread(target=self.run_countdown, args=(total_seconds,)).start()
         except Exception as e:
             self.terminal_output.insert(tk.END, f"Error starting countdown: {str(e)}\n")
             self.update_dess("surprised")
@@ -303,23 +293,150 @@ class Desstop:
         self.update_dess("scream")
         self.root.after(4000, lambda: self.update_dess("working"))
 #END --countdown--
+
+#START -wheel--
+    def spin_wheel(self, wheelname):
+        wheel_window = tk.Toplevel(self.root)
+        wheel_window.title(f"Spinning {wheelname} Wheel")
+        wheel_window.configure(bg="#34495e") 
+        wheel_label = tk.Label(wheel_window, text="", font=("Helvetica", 24), bg="#34495e", fg="white")
+        wheel_label.pack(pady=20)
+
+        def animate_spin():
+            for _ in range(30):
+                result = random.choice(self.settings["wheel_outcomes"])
+                wheel_label.config(text=result)
+                wheel_window.update()
+                time.sleep(0.05)
+            self.terminal_output.insert(tk.END, f"The wheel landed on: {result}\n")
+            self.update_dess("happy")
+
+        spin_thread = Thread(target=animate_spin)
+        spin_thread.start()
+#END --wheel--
+
 #START --routines--
     def manage_routine(self, *args):
         if len(args) == 1:
             routine_name = args[0]
-            self.routine_manager.execute_routine(routine_name)
+            self.execute_routine(routine_name)
         elif len(args) == 2 and args[1].lower() == "edit":
             routine_name = args[0]
-            self.routine_manager.open_routine_window(routine_name)
+            self.open_routine_window(routine_name)
         else:
-            self.routine_manager.open_routine_window()
+            self.open_routine_window()
 
     def check_routines(self):
         now = datetime.now().strftime("%H:%M:%S")
-        self.routine_manager.schedule_routines()
+        self.schedule_routines()
         self.root.after(1000, self.check_routines)
+
+    def process_custom_command(self, command):
+            parts = command.split()
+            main_command = parts[0].lower()
+    
+            if main_command in self.commands:
+                self.commands[main_command](*parts[1:])
+            elif main_command == "routine":
+                if len(parts) == 3 and parts[2].lower() == "edit":
+                    routine_name = parts[1]
+                    self.open_routine_window(routine_name)
+                else:
+                    routine_name = " ".join(parts[1:])
+                    self.execute_routine(routine_name)
+            else:
+                self.terminal_output.insert(tk.END, f"Unknown command: {command}\n")
+                self.update_dess("surprised")
+
+    # setup and initialize routine window
+    def open_routine_window(self, routine_name=None):
+        self.routine_window = tk.Toplevel(self.root)
+        self.routine_window.title("Routine Manager")
+        self.routine_window.configure(bg="#34495e") 
+
+        self.routine_name_var = tk.StringVar(value=routine_name)
+        self.command_var = tk.StringVar()
+        self.time_var = tk.StringVar()
+
+        ttk.Label(self.routine_window, text="Routine Name:", background="#34495e", foreground="white").pack(pady=5) 
+        tk.Entry(self.routine_window, background="#34495e", foreground="white", textvariable=self.routine_name_var).pack(pady=5)
+
+        ttk.Label(self.routine_window, text="Command:", background="#34495e", foreground="white").pack(pady=5) 
+        tk.Entry(self.routine_window, background="#34495e", foreground="white", textvariable=self.command_var).pack(pady=5)
+
+        ttk.Label(self.routine_window, text="Time (optional, format HH:MM:SS):", background="#34495e", foreground="white").pack(pady=5) 
+        tk.Entry(self.routine_window, background="#34495e", foreground="white", textvariable=self.time_var).pack(pady=5)
+
+        tk.Button(self.routine_window, text="Add Command", command=self.add_command, bg="#2ecc71", fg="white").pack(pady=5)
+        tk.Button(self.routine_window, text="Save Routine", command=self.save_routine, bg="#2ecc71", fg="white").pack(pady=5) 
+
+        self.command_listbox = tk.Listbox(self.routine_window, bg="#34495e", fg="white")
+        self.command_listbox.pack(pady=5, fill=tk.BOTH, expand=True)
+
+        tk.Button(self.routine_window, text="Remove Selected Command", command=self.remove_command, bg="#e74c3c", fg="white").pack(pady=5) 
+
+        if routine_name and routine_name in self.routines:
+            routine = self.routines[routine_name]
+            self.time_var.set(routine.get("time", ""))
+            for command in routine.get("commands", []):
+                self.command_listbox.insert(tk.END, command)
+
+    def add_command(self):
+        command = self.command_var.get().strip()
+        if command:
+            self.command_listbox.insert(tk.END, command)
+            self.command_var.set("")
+        else:
+            messagebox.showerror("Error", "Command cannot be empty")
+
+    def remove_command(self):
+        selected = self.command_listbox.curselection()
+        if selected:
+            self.command_listbox.delete(selected)
+
+    def save_routine(self):
+        name = self.routine_name_var.get().strip()
+        if not name:
+            messagebox.showerror("Error", "Routine name cannot be empty")
+            return
+
+        commands = self.command_listbox.get(0, tk.END)
+        if not commands:
+            messagebox.showerror("Error", "Routine must have at least one command")
+            return
+
+        routine = {
+            "commands": list(commands),
+            "time": self.time_var.get().strip() or None
+        }
+        self.routines[name] = routine
+        self.settings["routines"] = self.routines
+        save_settings(self.settings)
+        messagebox.showinfo("Success", f"Routine '{name}' saved successfully")
+        self.routine_window.destroy()
+
+    # manually activate routine
+    def execute_routine(self, name):
+        routine = self.routines.get(name)
+        if routine:
+            commands = routine["commands"]
+            for command in commands:
+                self.process_custom_command(command)
+        else:
+            self.terminal_output.insert(tk.END, f"Routine '{name}' not found\n")
+            self.update_dess("surprised")
+
+    # time activate routine
+    def schedule_routines(self):
+        now = datetime.now().strftime("%H:%M:%S")
+        for name, routine in self.routines.items():
+            routine_time = routine.get("time")
+            if routine_time and routine_time == now:
+                self.execute_routine(name)
 #END --routines--
+
 #END --main commands--
+
 #START --for fun commands--
     def blink(self):
         self.update_dess("blink")
@@ -348,6 +465,7 @@ class Desstop:
             self.terminal_output.insert(tk.END, f"I'd like to hear my name, not {recipient}\n")
             self.update_dess("irritated")
 #END --for fun commands--
+
 #END --commands--
 
     def update_dess(self, state):
