@@ -242,6 +242,9 @@ class Desstop:
 
         save_general_settings_button = tk.Button(scrollable_frame, text="Save General Settings", command=self.save_general_settings, bg="#2ecc71", fg=self.colors["text_color"]) 
         save_general_settings_button.pack(pady=10)
+        
+        reset_colors_button = tk.Button(scrollable_frame, text="Reset to Color Default", command=self.reset_colors_to_default, bg="#3498db", fg=self.colors["text_color"]) 
+        reset_colors_button.pack(pady=10)
 
         
     def choose_face_color(self):
@@ -275,6 +278,29 @@ class Desstop:
             self.terminal_input_cmd.configure(fg=color, insertbackground=color)
             self.terminal_output.configure(fg=color)
 
+    def reset_colors_to_default(self):
+        default_colors = {
+            "face_color": "#2ecc71",
+            "background_color": "#34495e",
+            "text_field_color": "#2c3e50",
+            "text_color": "white"
+        }
+        self.colors = default_colors
+
+        # Update UI elements with default colors
+        self.root.configure(bg=default_colors["background_color"])
+        self.command_window.configure(bg=default_colors["background_color"])
+        self.face_color_button.configure(bg=default_colors["face_color"])
+        self.background_color_button.configure(bg=default_colors["background_color"])
+        self.text_field_color_button.configure(bg=default_colors["text_field_color"])
+        self.text_color_button.configure(bg=default_colors["text_color"])
+
+        # Update settings and save
+        self.settings["colors"] = default_colors
+        save_settings(self.settings)
+        self.terminal_output.insert(tk.END, "Colors reset to default.\n")
+
+
     # save settings to json
     def save_general_settings(self):
         self.keybind = self.keybind_entry.get()
@@ -286,7 +312,7 @@ class Desstop:
         except:
             pass
         keyboard.add_hotkey(self.keybind, self.move_windows_to_top)
-        self.terminal_output.insert(tk.END, "General settings saved.\n")
+        self.terminal_output.insert(tk.END, "General settings saved successfully!\n")
         self.update_dess("happy")
     
     def save_wheel_outcomes(self):
