@@ -1,4 +1,4 @@
-from tkinter import scrolledtext, messagebox, ttk
+from tkinter import scrolledtext, messagebox, ttk, colorchooser
 from threading import Thread
 from datetime import datetime
 import tkinter as tk
@@ -24,7 +24,14 @@ def load_settings():
             "program_paths": {
                 "example": r"C:\example\example\example.exe",
             },
-            "routines": {}
+            "routines": {},
+            "keybind": "ctrl+d",
+            "colors": {
+                "face_color": "#2ecc71",
+                "background_color": "#34495e",
+                "text_field_color": "#2c3e50",
+                "text_color": "white"
+            }
         }
 #END --json--
 
@@ -32,29 +39,38 @@ def load_settings():
 class Desstop:
     def __init__(self, root):
         self.root = root
+        self.settings = load_settings()
+        self.keybind = self.settings.get("keybind", "ctrl+d")
+        self.colors = self.settings.get("colors", {
+            "face_color": "#2ecc71",
+            "background_color": "#34495e",
+            "text_field_color": "#2c3e50",
+            "text_color": "white"
+        })
+        
         self.root.title("Desstop")
-        self.root.configure(bg="#34495e")
+        self.root.configure(bg=self.colors["background_color"])
 
         self.settings = load_settings()
         self.routines = self.settings.get("routines", {})
         self.wheel_outcomes = self.settings.get("wheel_outcomes", ["Outcome 1", "Outcome 2", "Outcome 3"])
         self.program_paths = self.settings.get("program_paths", {"example": r"C:\example\example\example.exe"})
 
-        self.dess_label = tk.Label(root, text="(•‿•)", font=("Helvetica", 24), fg="#2ecc71", bg="#34495e")
+        self.dess_label = tk.Label(root, text="(•‿•)", font=("Helvetica", 24), fg=self.colors["face_color"], bg=self.colors["background_color"])
         self.dess_label.pack(pady=20)
 
         self.command_window = tk.Toplevel(root)
         self.command_window.title("Terminal")
-        self.command_window.configure(bg="#34495e")
+        self.command_window.configure(bg=self.colors["background_color"])
 
-        self.terminal_input_cmd = tk.Entry(self.command_window, width=50, font=("Helvetica", 12), bg="#2c3e50", fg="white", insertbackground="white") 
+        self.terminal_input_cmd = tk.Entry(self.command_window, width=50, font=("Helvetica", 12), bg=self.colors["text_field_color"], fg=self.colors["text_color"], insertbackground=self.colors["text_color"]) 
         self.terminal_input_cmd.pack(pady=10)
         self.terminal_input_cmd.bind("<Return>", self.process_command)
         initial_x_offset = 300
         initial_y_offset = 100
         self.command_window.geometry(f"+{initial_x_offset}+{initial_y_offset}")
 
-        self.terminal_output = scrolledtext.ScrolledText(self.command_window, width=60, height=15, font=("Helvetica", 10), bg="#2c3e50", fg="white") 
+        self.terminal_output = scrolledtext.ScrolledText(self.command_window, width=60, height=15, font=("Helvetica", 10), bg=self.colors["text_field_color"], fg=self.colors["text_color"]) 
         self.terminal_output.pack(pady=10)
 
         self.ascii_faces = {
@@ -86,7 +102,7 @@ class Desstop:
         self.awake = True
         self.terminal_output.insert(tk.END, "Hello, I'm Desstop! \n Please use commands list and settings to get started! \n You can call this window at any time by pressing CTRL + D \n whilst the program is running.\n")
 
-        keyboard.add_hotkey('ctrl+d', self.move_windows_to_top)
+        keyboard.add_hotkey(self.keybind, self.move_windows_to_top)
 
         self.check_routines()
 #END --setup--
@@ -110,10 +126,10 @@ class Desstop:
         elif main_command == "routine":
             if len(parts) == 3 and parts[2].lower() == "edit":
                 routine_name = parts[1]
-                self.routine_manager.open_routine_window(routine_name)
+                self.open_routine_window(routine_name)
             else:
                 routine_name = " ".join(parts[1:])
-                self.routine_manager.execute_routine(routine_name)
+                self.execute_routine(routine_name)
         else:
             self.terminal_output.insert(tk.END, f"Unknown command: {command}\n")
             self.update_dess("surprised")
@@ -148,31 +164,113 @@ class Desstop:
 
         wheel_settings_window = tk.Toplevel(self.root)
         wheel_settings_window.title("Set Wheel Outcomes")
-        wheel_settings_window.configure(bg="#34495e") 
+        wheel_settings_window.configure(bg=self.colors["background_color"]) 
 
-        wheel_label = tk.Label(wheel_settings_window, text="Wheel Outcomes:", font=("Helvetica", 14), bg="#34495e", fg="white") 
+        wheel_label = tk.Label(wheel_settings_window, text="Wheel Outcomes:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
         wheel_label.pack(pady=10)
 
-        self.wheel_outcomes_entry = scrolledtext.ScrolledText(wheel_settings_window, width=60, height=15, font=("Helvetica", 10), bg="#2c3e50", fg="white") 
+        self.wheel_outcomes_entry = scrolledtext.ScrolledText(wheel_settings_window, width=60, height=15, font=("Helvetica", 10), bg=self.colors["text_field_color"], fg=self.colors["text_color"]) 
         self.wheel_outcomes_entry.pack(pady=10)
         self.wheel_outcomes_entry.insert(tk.END, "\n".join(self.wheel_outcomes))
 
-        save_wheel_outcomes_button = tk.Button(wheel_settings_window, text="Save", command=self.save_wheel_outcomes, bg="#2ecc71", fg="white") 
+        save_wheel_outcomes_button = tk.Button(wheel_settings_window, text="Save", command=self.save_wheel_outcomes, bg="#2ecc71", fg=self.colors["text_color"]) 
         save_wheel_outcomes_button.pack(pady=10)
 
         program_settings_window = tk.Toplevel(self.root)
         program_settings_window.title("Set Program Paths")
-        program_settings_window.configure(bg="#34495e") 
+        program_settings_window.configure(bg=self.colors["background_color"]) 
 
-        program_label = tk.Label(program_settings_window, text="Program Paths:", font=("Arial", 14), bg="#34495e", fg="white")
+        program_label = tk.Label(program_settings_window, text="Program Paths:", font=("Arial", 14), bg=self.colors["background_color"], fg=self.colors["text_color"])
         program_label.pack(pady=10)
 
-        self.program_paths_text = scrolledtext.ScrolledText(program_settings_window, width=60, height=15, font=("Helvetica", 10), bg="#2c3e50", fg="white") 
+        self.program_paths_text = scrolledtext.ScrolledText(program_settings_window, width=60, height=15, font=("Helvetica", 10), bg=self.colors["text_field_color"], fg=self.colors["text_color"]) 
         self.program_paths_text.pack(pady=10)
         self.load_program_paths()
 
-        save_program_paths_button = tk.Button(program_settings_window, text="Save", command=self.save_program_paths, bg="#2ecc71", fg="white") 
+        save_program_paths_button = tk.Button(program_settings_window, text="Save", command=self.save_program_paths, bg="#2ecc71", fg=self.colors["text_color"]) 
         save_program_paths_button.pack(pady=10)
+        
+        general_settings_window = tk.Toplevel(self.root)
+        general_settings_window.title("General Settings")
+        general_settings_window.configure(bg=self.colors["background_color"]) 
+
+        keybind_label = tk.Label(general_settings_window, text="Keybind:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
+        keybind_label.pack(pady=10)
+
+        self.keybind_entry = tk.Entry(general_settings_window, width=20, font=("Helvetica", 12), bg=self.colors["text_field_color"], fg=self.colors["text_color"], insertbackground=self.colors["text_color"]) 
+        self.keybind_entry.pack(pady=10)
+        self.keybind_entry.insert(tk.END, self.keybind)
+
+        face_color_label = tk.Label(general_settings_window, text="Face Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
+        face_color_label.pack(pady=10)
+
+        self.face_color_button = tk.Button(general_settings_window, text="Choose Face Color", command=self.choose_face_color, bg=self.colors["face_color"], fg=self.colors["text_color"])
+        self.face_color_button.pack(pady=10)
+
+        background_color_label = tk.Label(general_settings_window, text="Background Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
+        background_color_label.pack(pady=10)
+
+        self.background_color_button = tk.Button(general_settings_window, text="Choose Background Color", command=self.choose_background_color, bg=self.colors["background_color"], fg=self.colors["text_color"])
+        self.background_color_button.pack(pady=10)
+
+        text_field_color_label = tk.Label(general_settings_window, text="Text Field Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
+        text_field_color_label.pack(pady=10)
+
+        self.text_field_color_button = tk.Button(general_settings_window, text="Choose Text Field Color", command=self.choose_text_field_color, bg=self.colors["text_field_color"], fg=self.colors["text_color"])
+        self.text_field_color_button.pack(pady=10)
+
+        text_color_label = tk.Label(general_settings_window, text="Text Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
+        text_color_label.pack(pady=10)
+
+        self.text_color_button = tk.Button(general_settings_window, text="Choose Text Color", command=self.choose_text_color, bg=self.colors["text_color"], fg=self.colors["background_color"])
+        self.text_color_button.pack(pady=10)
+
+        save_general_settings_button = tk.Button(general_settings_window, text="Save", command=self.save_general_settings, bg="#2ecc71", fg=self.colors["text_color"]) 
+        save_general_settings_button.pack(pady=10)
+        
+    def choose_face_color(self):
+        color = colorchooser.askcolor()[1]
+        if color:
+            self.colors["face_color"] = color
+            self.face_color_button.configure(bg=color)
+
+    def choose_background_color(self):
+        color = colorchooser.askcolor()[1]
+        if color:
+            self.colors["background_color"] = color
+            self.root.configure(bg=color)
+            self.command_window.configure(bg=color)
+            self.face_color_button.configure(bg=color)
+            self.background_color_button.configure(bg=color)
+            self.text_field_color_button.configure(bg=color)
+            self.text_color_button.configure(bg=color)
+
+    def choose_text_field_color(self):
+        color = colorchooser.askcolor()[1]
+        if color:
+            self.colors["text_field_color"] = color
+            self.terminal_input_cmd.configure(bg=color)
+            self.terminal_output.configure(bg=color)
+
+    def choose_text_color(self):
+        color = colorchooser.askcolor()[1]
+        if color:
+            self.colors["text_color"] = color
+            self.terminal_input_cmd.configure(fg=color, insertbackground=color)
+            self.terminal_output.configure(fg=color)
+
+    def save_general_settings(self):
+        self.keybind = self.keybind_entry.get()
+        self.settings["keybind"] = self.keybind
+        self.settings["colors"] = self.colors
+        save_settings(self.settings)
+        try:
+            keyboard.remove_hotkey(self.keybind)
+        except:
+            pass
+        keyboard.add_hotkey(self.keybind, self.move_windows_to_top)
+        self.terminal_output.insert(tk.END, "General settings saved.\n")
+        self.update_dess("happy")
     
     # save settings to json
     def save_wheel_outcomes(self):
