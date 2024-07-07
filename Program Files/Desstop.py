@@ -611,8 +611,9 @@ class Desstop:
             self.update_dess("irritated")
 
 #START --visualize--
+
     def visualize(self):
-        self.terminal_output.insert(tk.END, "Opening window...")
+        self.terminal_output.insert(tk.END, "Opening window...\n")
         self.update_dess("working")
 
         visualize_window = tk.Toplevel(self.root)
@@ -627,18 +628,60 @@ class Desstop:
         if file_path:
             with open(file_path, 'rb') as file:
                 file_content = file.read()
-                self.color_convert(file_content)
+                self.open_sorting_window(file_content)
 
-    def color_convert(self, file_content):
-        pixels = [tuple(file_content[i:i+3]) for i in range(0, len(file_content), 3)]
+    def open_sorting_window(self, file_content):
+        sorting_window = tk.Toplevel(self.root)
+        sorting_window.title("Choose Sorting Method")
+        sorting_window.configure(bg=self.colors["background_color"])
+
+        def sort_and_convert(sort_method):
+            self.color_convert(file_content, sort_method)
+            sorting_window.destroy()
+
+        tk.Button(sorting_window, text="None", command=lambda: sort_and_convert('none'), bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
+        tk.Button(sorting_window, text="Brightness", command=lambda: sort_and_convert('brightness'), bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
+        tk.Button(sorting_window, text="Value", command=lambda: sort_and_convert('value'), bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
+        tk.Button(sorting_window, text="Additive", command=lambda: sort_and_convert('additive'), bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
+        tk.Button(sorting_window, text="Bonkers", command=lambda: sort_and_convert('bonkers'), bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
+        tk.Button(sorting_window, text="Random", command=lambda: sort_and_convert('random'), bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
+
+    def color_convert(self, file_content, sort_method):
+        pixels = [tuple(file_content[i:i+3]) for i in range(0, len(file_content) - len(file_content) % 3, 3)]
+
+        if sort_method == 'brightness':
+            def total(rgb):
+                return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]
+            pixels = sorted(pixels, key=total)
+        elif sort_method == 'value':
+            pixels = sorted(pixels)
+        elif sort_method == 'additive':
+            def total(rgb):
+                return rgb[0] + rgb[1] + rgb[2]
+            pixels = sorted(pixels, key=total)
+        elif sort_method == 'bonkers':
+            def total(rgb):
+                return (rgb[0] + 2) * (rgb[1] + 2) + (rgb[2] + 2) - (rgb[2] * 2)
+            pixels = sorted(pixels, key=total)
+        elif sort_method == 'random':
+            def total(rgb):
+                operators = ["+", "-", "*"]
+                expression = f"{rgb[0]} {random.choice(operators)} {rgb[1]} {random.choice(operators)} {rgb[2]}"
+                result = eval(expression)
+                return result
+            pixels = sorted(pixels, key=total)
 
         total_pixels = 1080 * 1080
-        if len(pixels) < total_pixels:
-            pixels.extend([(0, 0, 0)] * (total_pixels - len(pixels)))
-        elif len(pixels) > total_pixels:
-            pixels = pixels[:total_pixels]
+        canvas = [(0, 0, 0)] * total_pixels
 
-        image_array = np.array(pixels, dtype=np.uint8).reshape((1080, 1080, 3))
+        for i, pixel in enumerate(pixels):
+            if i < total_pixels:
+                canvas[i] = pixel
+
+        canvas = canvas[:total_pixels]
+
+        image_array = np.array(canvas, dtype=np.uint8).reshape((1080, 1080, 3))
+
         image = Image.fromarray(image_array)
         image.show()
 #END --visualize--
