@@ -8,6 +8,10 @@ import keyboard
 import pyautogui
 import json
 import random
+from tkinter import filedialog
+from PIL import Image
+import numpy as np
+
 
 #START --json--
 def save_settings(settings):
@@ -96,7 +100,8 @@ class Desstop:
             "thanks": self.thanks,
             "list": self.show_commands,
             "countdown": self.start_countdown,
-            "routine": self.manage_routine
+            "routine": self.manage_routine,
+            "visualize": self.visualize
         }
 
         self.awake = True
@@ -604,6 +609,40 @@ class Desstop:
         else:
             self.terminal_output.insert(tk.END, f"I'd like to hear my name, not {recipient}\n")
             self.update_dess("irritated")
+
+#START --visualize--
+    def visualize(self):
+        self.terminal_output.insert(tk.END, "Opening window...")
+        self.update_dess("working")
+
+        visualize_window = tk.Toplevel(self.root)
+        visualize_window.title("Visualize")
+        visualize_window.configure(bg=self.colors["background_color"])
+
+        visualize_button = tk.Button(visualize_window, text="Open File", command=self.open_file, bg="#2ecc71", fg=self.colors["text_color"])
+        visualize_button.pack(pady=10)
+
+    def open_file(self):
+        file_path = filedialog.askopenfilename()
+        if file_path:
+            with open(file_path, 'rb') as file:
+                file_content = file.read()
+                self.color_convert(file_content)
+
+    def color_convert(self, file_content):
+        pixels = [tuple(file_content[i:i+3]) for i in range(0, len(file_content), 3)]
+
+        total_pixels = 1080 * 1080
+        if len(pixels) < total_pixels:
+            pixels.extend([(0, 0, 0)] * (total_pixels - len(pixels)))
+        elif len(pixels) > total_pixels:
+            pixels = pixels[:total_pixels]
+
+        image_array = np.array(pixels, dtype=np.uint8).reshape((1080, 1080, 3))
+        image = Image.fromarray(image_array)
+        image.show()
+#END --visualize--
+
 #END --for fun commands--
 
 #END --commands--
