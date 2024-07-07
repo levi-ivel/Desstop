@@ -1,4 +1,4 @@
-from tkinter import scrolledtext, messagebox, ttk, colorchooser
+from tkinter import scrolledtext, messagebox, ttk, colorchooser, filedialog
 from threading import Thread
 from datetime import datetime
 import tkinter as tk
@@ -8,7 +8,6 @@ import keyboard
 import pyautogui
 import json
 import random
-from tkinter import filedialog
 from PIL import Image
 import numpy as np
 
@@ -55,7 +54,6 @@ class Desstop:
         self.root.title("Desstop")
         self.root.configure(bg=self.colors["background_color"])
 
-        self.settings = load_settings()
         self.routines = self.settings.get("routines", {})
         self.wheel_outcomes = self.settings.get("wheel_outcomes", ["Outcome 1", "Outcome 2", "Outcome 3"])
         self.program_paths = self.settings.get("program_paths", {"example": r"C:\example\example\example.exe"})
@@ -189,67 +187,55 @@ class Desstop:
         settings_canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
 
         # Wheel Outcomes Section
-        wheel_label = tk.Label(scrollable_frame, text="Wheel Outcomes:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
-        wheel_label.pack(pady=10)
+        tk.Label(scrollable_frame, text="Wheel Outcomes:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]).pack(pady=10)
 
         self.wheel_outcomes_entry = scrolledtext.ScrolledText(scrollable_frame, width=60, height=15, font=("Helvetica", 10), bg=self.colors["text_field_color"], fg=self.colors["text_color"]) 
         self.wheel_outcomes_entry.pack(pady=10)
         self.wheel_outcomes_entry.insert(tk.END, "\n".join(self.wheel_outcomes))
 
-        save_wheel_outcomes_button = tk.Button(scrollable_frame, text="Save Wheel Outcomes", command=self.save_wheel_outcomes, bg="#2ecc71", fg=self.colors["text_color"]) 
-        save_wheel_outcomes_button.pack(pady=10)
+        tk.Button(scrollable_frame, text="Save Wheel Outcomes", command=self.save_wheel_outcomes, bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
 
         # Program Paths Section
-        program_label = tk.Label(scrollable_frame, text="Program Paths:", font=("Arial", 14), bg=self.colors["background_color"], fg=self.colors["text_color"])
-        program_label.pack(pady=10)
+        tk.Label(scrollable_frame, text="Program Paths:", font=("Arial", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]).pack(pady=10)
 
         self.program_paths_text = scrolledtext.ScrolledText(scrollable_frame, width=60, height=15, font=("Helvetica", 10), bg=self.colors["text_field_color"], fg=self.colors["text_color"]) 
         self.program_paths_text.pack(pady=10)
         self.load_program_paths()
 
-        save_program_paths_button = tk.Button(scrollable_frame, text="Save Program Paths", command=self.save_program_paths, bg="#2ecc71", fg=self.colors["text_color"]) 
-        save_program_paths_button.pack(pady=10)
+        tk.Button(scrollable_frame, text="Save Program Paths", command=self.save_program_paths, bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
 
         # General Settings Section
-        general_settings_label = tk.Label(scrollable_frame, text="General Settings", font=("Arial", 14), bg=self.colors["background_color"], fg=self.colors["text_color"])
-        general_settings_label.pack(pady=10)
+        tk.Label(scrollable_frame, text="General Settings", font=("Arial", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]).pack(pady=10)
 
-        keybind_label = tk.Label(scrollable_frame, text="Keybind:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
-        keybind_label.pack(pady=10)
+        tk.Label(scrollable_frame, text="Keybind:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]).pack(pady=10)
 
         self.keybind_entry = tk.Entry(scrollable_frame, width=20, font=("Helvetica", 12), bg=self.colors["text_field_color"], fg=self.colors["text_color"], insertbackground=self.colors["text_color"]) 
         self.keybind_entry.pack(pady=10)
         self.keybind_entry.insert(tk.END, self.keybind)
 
-        face_color_label = tk.Label(scrollable_frame, text="Face Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
-        face_color_label.pack(pady=10)
+        tk.Label(scrollable_frame, text="Face Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]).pack(pady=10)
 
         self.face_color_button = tk.Button(scrollable_frame, text="Choose Face Color", command=self.choose_face_color, bg=self.colors["face_color"], fg=self.colors["text_color"])
         self.face_color_button.pack(pady=10)
 
-        background_color_label = tk.Label(scrollable_frame, text="Background Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
-        background_color_label.pack(pady=10)
+        tk.Label(scrollable_frame, text="Background Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]).pack(pady=10)
 
         self.background_color_button = tk.Button(scrollable_frame, text="Choose Background Color", command=self.choose_background_color, bg=self.colors["background_color"], fg=self.colors["text_color"])
         self.background_color_button.pack(pady=10)
 
-        text_field_color_label = tk.Label(scrollable_frame, text="Text Field Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
-        text_field_color_label.pack(pady=10)
+        tk.Label(scrollable_frame, text="Text Field Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]).pack(pady=10)
 
         self.text_field_color_button = tk.Button(scrollable_frame, text="Choose Text Field Color", command=self.choose_text_field_color, bg=self.colors["text_field_color"], fg=self.colors["text_color"])
         self.text_field_color_button.pack(pady=10)
 
-        text_color_label = tk.Label(scrollable_frame, text="Text Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]) 
-        text_color_label.pack(pady=10)
+        tk.Label(scrollable_frame, text="Text Color:", font=("Helvetica", 14), bg=self.colors["background_color"], fg=self.colors["text_color"]).pack(pady=10)
 
         self.text_color_button = tk.Button(scrollable_frame, text="Choose Text Color", command=self.choose_text_color, bg=self.colors["text_color"], fg=self.colors["background_color"])
         self.text_color_button.pack(pady=10)
 
-        save_general_settings_button = tk.Button(scrollable_frame, text="Save General Settings", command=self.save_general_settings, bg="#2ecc71", fg=self.colors["text_color"]) 
-        save_general_settings_button.pack(pady=10)
+        tk.Button(scrollable_frame, text="Save General Settings", command=self.save_general_settings, bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
         
-        reset_colors_button = tk.Button(scrollable_frame, text="Reset to Color Default", command=self.reset_colors_to_default, bg="#3498db", fg=self.colors["text_color"]) 
-        reset_colors_button.pack(pady=10)
+        tk.Button(scrollable_frame, text="Reset to Color Default", command=self.reset_colors_to_default, bg="#3498db", fg=self.colors["text_color"]).pack(pady=10)
 
         
     def choose_face_color(self):
@@ -620,8 +606,7 @@ class Desstop:
         visualize_window.title("Visualize")
         visualize_window.configure(bg=self.colors["background_color"])
 
-        visualize_button = tk.Button(visualize_window, text="Open File", command=self.open_file, bg="#2ecc71", fg=self.colors["text_color"])
-        visualize_button.pack(pady=10)
+        tk.Button(visualize_window, text="Open File", command=self.open_file, bg="#2ecc71", fg=self.colors["text_color"]).pack(pady=10)
 
     def open_file(self):
         file_path = filedialog.askopenfilename()
