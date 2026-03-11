@@ -12,9 +12,17 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "desstop",
-        "width": 800,
-        "height": 600
+        "width": 300,
+        "height": 200,
+        "x": 0,
+        "y": 0,
+        "alwaysOnTop": true,
+        "decorations": false,
+        "resizable": false,
+        "skipTaskbar": true,
+        "transparent": true
       }
     ],
     "security": {
