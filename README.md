@@ -1,6 +1,6 @@
  Introduction
 ---
-Desstop is a simple workspace based notes app made with Tauri, SvelteKit and Bun.
+Desstop is a simple workspace based TODO app made with Tauri, SvelteKit and Bun.
 
 
 Contributing
@@ -16,7 +16,6 @@ Some window managers may not accept the window settings, such as always on top a
 
 One example of this is Hyprland, you can minigate this by adding this to your hyprconfig:
 ```
-# Modern Hyprland syntax (Unified Rule System)
 windowrule = float 1, match:class ^(desstop)$
 windowrule = move 0 0, match:class ^(desstop)$
 windowrule = pin 1, match:class ^(desstop)$
